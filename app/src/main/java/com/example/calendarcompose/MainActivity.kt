@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
 import com.example.calendarcompose.model.DayEntity
 import com.example.calendarcompose.model.EventEntity
+import com.example.calendarcompose.screen.monthview.MonthViewScreen
+import com.example.calendarcompose.screen.monthview.MonthViewScreen2
 import com.example.calendarcompose.screen.threeday.ThreeDayScreen
 import java.util.Date
 import kotlin.random.Random
@@ -18,7 +20,8 @@ class MainActivity : ComponentActivity() {
         val fixedItems = listStateProvidedByViewModel(true)
 
         setContent {
-            ThreeDayScreen(items, fixedItems)
+            // ThreeDayScreen(items, fixedItems)
+            MonthViewScreen2()
         }
     }
 }
