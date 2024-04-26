@@ -22,7 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
@@ -44,6 +46,7 @@ import com.example.calendarcompose.screen.monthview.model.drawSegmentedBorder
 import java.util.Calendar
 
 private const val NUMBER_ROWS = 7
+private val borderSize = 0.5.dp
 
 @Composable
 fun MonthViewScreen() {
@@ -207,43 +210,24 @@ fun EmptyCard() {
         modifier = Modifier
             .fillMaxWidth()
             .height(COLUMN_HEIGHT)
-            .border(1.dp, SolidColor(Color.DarkGray), shape = RectangleShape)
+            .border(borderSize, SolidColor(Color.Black), shape = RectangleShape)
     ) {
     }
 }
 
-fun Modifier.drawWithoutRect(rect: Rect?) =
-    drawWithContent {
-        if (rect != null) {
-            clipRect(
-                left = rect.left,
-                top = rect.top,
-                right = rect.right,
-                bottom = rect.bottom,
-                clipOp = ClipOp.Difference,
-            ) {
-                this@drawWithContent.drawContent()
-            }
-        } else {
-            drawContent()
-        }
-    }
-
 @Composable
 fun CalendarItem(day: Day) {
-    var textCoordinates by remember { mutableStateOf <Rect?>(null) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .height(COLUMN_HEIGHT)
             .background(Color.LightGray)
-            .drawWithoutRect(textCoordinates)
-            .border(
-                width = 0.8.dp,
-                color = Color.Black.copy(alpha = 0.5f),
-                shape = RectangleShape
-            )
-            //.border(1.dp, SolidColor(Color.DarkGray), shape = RectangleShape)
+            .drawBehind{
+                drawRect(Color.Black)
+            }
+            .drawBehind {
+                drawRect(Color.White, Offset(1f, 1f))
+            }
     ) {
 
 
@@ -261,9 +245,6 @@ fun CalendarItem(day: Day) {
             }
             Row(
                 modifier = Modifier
-                    .onGloballyPositioned { layoutCoordinates ->
-                        textCoordinates = layoutCoordinates.boundsInParent()
-                    }
                     .drawSegmentedBorder(
                         strokeWidth = 2.dp,
                         borderColor = Color.Green,
