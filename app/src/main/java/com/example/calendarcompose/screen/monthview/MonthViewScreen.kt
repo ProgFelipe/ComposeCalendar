@@ -15,28 +15,18 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.calendarcompose.screen.monthview.model.BorderOrder
@@ -91,7 +81,7 @@ fun MonthViewScreen() {
                     else -> BorderOrder.End
                 }
 
-                val mModifier = if(order == BorderOrder.Hole){
+                val mModifier = if (order == BorderOrder.Hole) {
                     Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .background(Color.LightGray)
@@ -100,7 +90,7 @@ fun MonthViewScreen() {
                             Color.Green,
                             shape = RoundedCornerShape(20.dp),
                         )
-                }else{
+                } else {
                     Modifier.drawSegmentedBorder(
                         strokeWidth = 2.dp,
                         borderColor = Color.Green,
@@ -125,7 +115,7 @@ fun MonthViewScreen() {
 
 private val COLUMN_HEIGHT = 100.dp
 
-fun getWeekDaysFromCurrentDay() : List<String> {
+fun getWeekDaysFromCurrentDay(): List<String> {
     val daysTitle = listOf(
         Pair(Calendar.SUNDAY, "Sun"),
         Pair(Calendar.MONDAY, "Mon"),
@@ -137,13 +127,13 @@ fun getWeekDaysFromCurrentDay() : List<String> {
     )
     val currentDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
 
-    val currentDay = daysTitle.indexOfFirst { it.first ==  currentDayOfWeek}
+    val currentDay = daysTitle.indexOfFirst { it.first == currentDayOfWeek }
     var counter = currentDay
 
     val daysFromCurrentDay = arrayListOf<String>()
     daysTitle.map { _ ->
         daysFromCurrentDay.add(daysTitle[counter].second)
-        if(counter == daysTitle.size - 1){
+        if (counter == daysTitle.size - 1) {
             counter = 0
         } else {
             counter++
@@ -222,14 +212,13 @@ fun CalendarItem(day: Day) {
             .fillMaxWidth()
             .height(COLUMN_HEIGHT)
             .background(Color.LightGray)
-            .drawBehind{
+            .drawBehind {
                 drawRect(Color.Black)
             }
             .drawBehind {
                 drawRect(Color.White, Offset(1f, 1f))
             }
     ) {
-
 
 
         val cal: Calendar = Calendar.getInstance()
@@ -249,7 +238,7 @@ fun CalendarItem(day: Day) {
                         strokeWidth = 2.dp,
                         borderColor = Color.Green,
                         borderOrder = borderType,
-                        cornerPercent = 20,
+                        cornerPercent = 10,
                         backgroundColor = Color.White
                     )
                     .fillMaxWidth()
@@ -259,12 +248,19 @@ fun CalendarItem(day: Day) {
                 if (borderType == BorderOrder.Hole || borderType == BorderOrder.Center) {
                     modifier.fillMaxWidth()
                 }
+                if (borderType == BorderOrder.Hole) {
+                    modifier.padding(horizontal = 10.dp)
+                }
                 val textAlignment = when (borderType) {
                     BorderOrder.Start -> TextAlign.End
                     BorderOrder.End -> TextAlign.Start
                     else -> TextAlign.Justify
                 }
-                Text(modifier = modifier, text = it.name, textAlign = textAlignment)
+                Text(
+                    modifier = modifier, text = it.name, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = textAlignment,
+                )
             }
             Text(text = borderType.name)
             Text(text = "${it.getDayOfMonth(it.starDate)} - ${it.getDayOfMonth(it.endDate)}")

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.Dp
 enum class BorderOrder {
     Start, Center, End, Hole
 }
+
 
 @SuppressLint("ModifierFactoryUnreferencedReceiver")
 fun Modifier.drawSegmentedBorder(
@@ -58,7 +60,7 @@ fun Modifier.drawSegmentedBorder(
                     backgroundColor
                 )
 
-                else -> drawEnd(
+                BorderOrder.End -> drawEnd(
                     borderColor,
                     width, height,
                     cornerRadius,
@@ -66,6 +68,9 @@ fun Modifier.drawSegmentedBorder(
                     backgroundColor,
                     cornerRadiusBackground
                 )
+                BorderOrder.Hole -> {
+                    drawRoundRect(borderColor, Offset(0f+4f, 0f), Size(width-8f, height) , CornerRadius(cornerRadius, cornerRadius))
+                }
             }
         }
     }

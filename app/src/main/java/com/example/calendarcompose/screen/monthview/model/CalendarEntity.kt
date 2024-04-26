@@ -18,7 +18,7 @@ data class CalendarEntity(
             val daySample = Day(
                 events = listOf(
                     Event(
-                        "three",
+                        "Maria's Birthday",
                         EventType.BIRTHDAY,
                         persons = listOf(person, person2, person3),
                         calendar.time,
@@ -27,9 +27,9 @@ data class CalendarEntity(
             )
             val daySample2 = Day(
                 events = listOf(
-                    Event("one", EventType.APPOINTMENT, persons = listOf(person, person3), calendar.time, calendar.time),
+                    /*Event("one", EventType.APPOINTMENT, persons = listOf(person, person3), calendar.time, calendar.time),
                     Event("two", EventType.BIRTHDAY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 1) }
-                        .time),
+                        .time),*/
                     Event("three", EventType.STUDY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 2) }.time)
                 )
             )
@@ -55,12 +55,13 @@ data class CalendarEntity(
                     list.add(null)
                     extraSpaces += 2
                 }
-                val day = days[Random.nextInt(0, 2)]
+                // val day = days[Random.nextInt(0, 2)]
+                val day = daySample
 
-                dateInfo.roll(Calendar.DAY_OF_YEAR, true)
                 val change = day.copy()
                 change.date = dateInfo.time
                 list.add(change)
+                dateInfo.roll(Calendar.DAY_OF_YEAR, true)
             }
             return CalendarEntity(
                 list
@@ -107,5 +108,5 @@ data class Event(
 
 data class Day(
     var date: Date = Date(),
-    val events: List<Event> = listOf()
+    val events: List<Event> = emptyList()
 )
