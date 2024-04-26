@@ -15,11 +15,23 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,7 +68,6 @@ fun MonthViewScreen() {
                             borderColor = Color.Green,
                             borderOrder = order,
                             cornerPercent = 50,
-                            drawDivider = false,
                             backgroundColor = Color.LightGray
                         )
                         .padding(4.dp)
@@ -77,18 +88,29 @@ fun MonthViewScreen() {
                     else -> BorderOrder.End
                 }
 
+                val mModifier = if(order == BorderOrder.Hole){
+                    Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.LightGray)
+                        .border(
+                            2.dp,
+                            Color.Green,
+                            shape = RoundedCornerShape(20.dp),
+                        )
+                }else{
+                    Modifier.drawSegmentedBorder(
+                        strokeWidth = 2.dp,
+                        borderColor = Color.Green,
+                        borderOrder = order,
+                        cornerPercent = 50,
+                        backgroundColor = Color.LightGray
+                    )
+                }
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(50.dp)
-                        .drawSegmentedBorder(
-                            strokeWidth = 2.dp,
-                            borderColor = Color.Green,
-                            borderOrder = order,
-                            cornerPercent = 50,
-                            drawDivider = false,
-                            backgroundColor = Color.LightGray
-                        )
+                        .then(mModifier)
                         .padding(4.dp)
                 ) {
                     Text(text = "$it")
@@ -96,34 +118,6 @@ fun MonthViewScreen() {
             }
         }
     }
-
-
-    /*Row {
-        repeat(4) {
-
-            val order = when (it) {
-                0 -> BorderOrder.Start
-                3 -> BorderOrder.End
-                else -> BorderOrder.Center
-            }
-
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(40.dp)
-                    .drawSegmentedBorder(
-                        strokeWidth = 2.dp,
-                        color = Color.Cyan,
-                        borderOrder = order,
-                        cornerPercent = 50,
-                        drawDivider = true
-                    )
-                    .padding(4.dp)
-            ) {
-                Text(text = "$it")
-            }
-        }
-    }*/
 }
 
 private val COLUMN_HEIGHT = 100.dp
@@ -218,15 +212,41 @@ fun EmptyCard() {
     }
 }
 
+fun Modifier.drawWithoutRect(rect: Rect?) =
+    drawWithContent {
+        if (rect != null) {
+            clipRect(
+                left = rect.left,
+                top = rect.top,
+                right = rect.right,
+                bottom = rect.bottom,
+                clipOp = ClipOp.Difference,
+            ) {
+                this@drawWithContent.drawContent()
+            }
+        } else {
+            drawContent()
+        }
+    }
+
 @Composable
 fun CalendarItem(day: Day) {
+    var textCoordinates by remember { mutableStateOf <Rect?>(null) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .height(COLUMN_HEIGHT)
             .background(Color.LightGray)
-            .border(1.dp, SolidColor(Color.DarkGray), shape = RectangleShape)
+            .drawWithoutRect(textCoordinates)
+            .border(
+                width = 0.8.dp,
+                color = Color.Black.copy(alpha = 0.5f),
+                shape = RectangleShape
+            )
+            //.border(1.dp, SolidColor(Color.DarkGray), shape = RectangleShape)
     ) {
+
+
 
         val cal: Calendar = Calendar.getInstance()
         cal.setTime(day.date)
@@ -241,18 +261,17 @@ fun CalendarItem(day: Day) {
             }
             Row(
                 modifier = Modifier
-                    .background(
-                        color = it.eventType.color,
-                        shape = RoundedCornerShape(2.dp)
-                    )
+                    .onGloballyPositioned { layoutCoordinates ->
+                        textCoordinates = layoutCoordinates.boundsInParent()
+                    }
                     .drawSegmentedBorder(
                         strokeWidth = 2.dp,
                         borderColor = Color.Green,
                         borderOrder = borderType,
-                        cornerPercent = 40,
-                        drawDivider = false,
-                        backgroundColor = Color.LightGray
+                        cornerPercent = 20,
+                        backgroundColor = Color.White
                     )
+                    .fillMaxWidth()
                     .align(rowAlignment)
             ) {
                 val modifier = Modifier

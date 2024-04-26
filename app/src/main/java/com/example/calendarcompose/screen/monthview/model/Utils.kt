@@ -9,8 +9,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -25,7 +28,6 @@ fun Modifier.drawSegmentedBorder(
     borderColor: Color,
     cornerPercent: Int,
     borderOrder: BorderOrder,
-    drawDivider: Boolean = false,
     backgroundColor: Color
 ) = composed(
     factory = {
@@ -40,153 +42,179 @@ fun Modifier.drawSegmentedBorder(
             val cornerRadiusBackground = (width - strokeWidthPx) * cornerPercent / 100
 
             when (borderOrder) {
-                BorderOrder.Start -> {
+                BorderOrder.Start -> drawStart(
+                    borderColor,
+                    width, height,
+                    cornerRadius,
+                    strokeWidthPx,
+                    backgroundColor,
+                    cornerRadiusBackground
+                )
 
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = width, y = 0f),
-                        end = Offset(x = cornerRadius, y = 0f),
-                        strokeWidth = strokeWidthPx
-                    )
+                BorderOrder.Center -> drawCenter(
+                    borderColor,
+                    width, height,
+                    strokeWidthPx,
+                    backgroundColor
+                )
 
-                    // Top left arc
-                    drawArc(
-                        color = borderColor,
-                        startAngle = 180f,
-                        sweepAngle = 90f,
-                        useCenter = false,
-                        topLeft = Offset.Zero,
-                        size = Size(cornerRadius * 2, cornerRadius * 2),
-                        style = Stroke(width = strokeWidthPx)
-                    )
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = 0f, y = cornerRadius),
-                        end = Offset(x = 0f, y = height - cornerRadius),
-                        strokeWidth = strokeWidthPx
-                    )
-                    // Bottom left arc
-                    drawArc(
-                        color = borderColor,
-                        startAngle = 90f,
-                        sweepAngle = 90f,
-                        useCenter = false,
-                        topLeft = Offset(x = 0f, y = height - 2 * cornerRadius),
-                        size = Size(cornerRadius * 2, cornerRadius * 2),
-                        style = Stroke(width = strokeWidthPx)
-                    )
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = cornerRadius, y = height),
-                        end = Offset(x = width, y = height),
-                        strokeWidth = strokeWidthPx
-                    )
-                    backgroundDraw(
-                        cornerRadiusBackground, 0f + density.density,
-                        width, height - strokeWidthPx,
-                        density.density,
-                        density.density
-                    ).also {
-                        drawPath(it, color = backgroundColor)
-                    }
-                }
-
-                BorderOrder.Center -> {
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = 0f, y = 0f),
-                        end = Offset(x = width, y = 0f),
-                        strokeWidth = strokeWidthPx
-                    )
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = 0f, y = height),
-                        end = Offset(x = width, y = height),
-                        strokeWidth = strokeWidthPx
-                    )
-
-                    if (drawDivider) {
-                        drawLine(
-                            color = borderColor,
-                            start = Offset(x = 0f, y = 0f),
-                            end = Offset(x = 0f, y = height),
-                            strokeWidth = strokeWidthPx
-                        )
-                    }
-                    backgroundDraw(
-                        0f, 0f,
-                        width, height - strokeWidthPx,
-                        0f, density.density
-                    ).also {
-                        drawPath(it, color = backgroundColor)
-                    }
-                }
-
-                else -> {
-                    if (drawDivider) {
-                        drawLine(
-                            color = borderColor,
-                            start = Offset(x = 0f, y = 0f),
-                            end = Offset(x = 0f, y = height),
-                            strokeWidth = strokeWidthPx
-                        )
-                    }
-
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = 0f, y = 0f),
-                        end = Offset(x = width - cornerRadius, y = 0f),
-                        strokeWidth = strokeWidthPx
-                    )
-
-                    // Top right arc
-                    drawArc(
-                        color = borderColor,
-                        startAngle = 270f,
-                        sweepAngle = 90f,
-                        useCenter = false,
-                        topLeft = Offset(x = width - cornerRadius * 2, y = 0f),
-                        size = Size(cornerRadius * 2, cornerRadius * 2),
-                        style = Stroke(width = strokeWidthPx)
-                    )
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = width, y = cornerRadius),
-                        end = Offset(x = width, y = height - cornerRadius),
-                        strokeWidth = strokeWidthPx
-                    )
-                    // Bottom right arc
-                    drawArc(
-                        color = borderColor,
-                        startAngle = 0f,
-                        sweepAngle = 90f,
-                        useCenter = false,
-                        topLeft = Offset(
-                            x = width - 2 * cornerRadius,
-                            y = height - 2 * cornerRadius
-                        ),
-                        size = Size(cornerRadius * 2, cornerRadius * 2),
-                        style = Stroke(width = strokeWidthPx)
-                    )
-                    drawLine(
-                        color = borderColor,
-                        start = Offset(x = 0f, y = height),
-                        end = Offset(x = width - cornerRadius, y = height),
-                        strokeWidth = strokeWidthPx
-                    )
-                    backgroundDraw(
-                        0f, cornerRadiusBackground,
-                        width - density.density, height - strokeWidthPx,
-                        0f,
-                        density.density
-                    ).also {
-                        drawPath(it, color = backgroundColor)
-                    }
-                }
+                else -> drawEnd(
+                    borderColor,
+                    width, height,
+                    cornerRadius,
+                    strokeWidthPx,
+                    backgroundColor,
+                    cornerRadiusBackground
+                )
             }
         }
     }
 )
+
+private fun DrawScope.drawStart(
+    borderColor: Color,
+    width: Float, height: Float,
+    cornerRadius: Float,
+    strokeWidthPx: Float,
+    backgroundColor: Color,
+    backgroundRadius: Float
+) {
+    drawLine(
+        color = borderColor,
+        start = Offset(x = width, y = 0f),
+        end = Offset(x = cornerRadius, y = 0f),
+        strokeWidth = strokeWidthPx
+    )
+
+    // Top left arc
+    drawArc(
+        color = borderColor,
+        startAngle = 180f,
+        sweepAngle = 90f,
+        useCenter = false,
+        topLeft = Offset.Zero,
+        size = Size(cornerRadius * 2, cornerRadius * 2),
+        style = Stroke(width = strokeWidthPx)
+    )
+    drawLine(
+        color = borderColor,
+        start = Offset(x = 0f, y = cornerRadius),
+        end = Offset(x = 0f, y = height - cornerRadius),
+        strokeWidth = strokeWidthPx
+    )
+    // Bottom left arc
+    drawArc(
+        color = borderColor,
+        startAngle = 90f,
+        sweepAngle = 90f,
+        useCenter = false,
+        topLeft = Offset(x = 0f, y = height - 2 * cornerRadius),
+        size = Size(cornerRadius * 2, cornerRadius * 2),
+        style = Stroke(width = strokeWidthPx)
+    )
+    drawLine(
+        color = borderColor,
+        start = Offset(x = cornerRadius, y = height),
+        end = Offset(x = width, y = height),
+        strokeWidth = strokeWidthPx
+    )
+    backgroundDraw(
+        backgroundRadius, 0f + density,
+        width, height - strokeWidthPx,
+        density,
+        density
+    ).also {
+        drawPath(it, color = backgroundColor)
+    }
+}
+
+private fun DrawScope.drawEnd(
+    borderColor: Color,
+    width: Float, height: Float,
+    cornerRadius: Float,
+    strokeWidthPx: Float,
+    backgroundColor: Color,
+    backgroundRadius: Float
+){
+    drawLine(
+        color = borderColor,
+        start = Offset(x = 0f, y = 0f),
+        end = Offset(x = width - cornerRadius, y = 0f),
+        strokeWidth = strokeWidthPx
+    )
+
+    // Top right arc
+    drawArc(
+        color = borderColor,
+        startAngle = 270f,
+        sweepAngle = 90f,
+        useCenter = false,
+        topLeft = Offset(x = width - cornerRadius * 2, y = 0f),
+        size = Size(cornerRadius * 2, cornerRadius * 2),
+        style = Stroke(width = strokeWidthPx)
+    )
+    drawLine(
+        color = borderColor,
+        start = Offset(x = width, y = cornerRadius),
+        end = Offset(x = width, y = height - cornerRadius),
+        strokeWidth = strokeWidthPx
+    )
+    // Bottom right arc
+    drawArc(
+        color = borderColor,
+        startAngle = 0f,
+        sweepAngle = 90f,
+        useCenter = false,
+        topLeft = Offset(
+            x = width - 2 * cornerRadius,
+            y = height - 2 * cornerRadius
+        ),
+        size = Size(cornerRadius * 2, cornerRadius * 2),
+        style = Stroke(width = strokeWidthPx)
+    )
+    drawLine(
+        color = borderColor,
+        start = Offset(x = 0f, y = height),
+        end = Offset(x = width - cornerRadius, y = height),
+        strokeWidth = strokeWidthPx
+    )
+    backgroundDraw(
+        0f, backgroundRadius,
+        width - density, height - strokeWidthPx,
+        0f,
+        density
+    ).also {
+        drawPath(it, color = backgroundColor)
+    }
+}
+
+private fun DrawScope.drawCenter(
+    borderColor: Color,
+    width: Float, height: Float,
+    strokeWidthPx: Float,
+    backgroundColor: Color
+) {
+    drawLine(
+        color = borderColor,
+        start = Offset(x = 0f, y = 0f),
+        end = Offset(x = width, y = 0f),
+        strokeWidth = strokeWidthPx
+    )
+    drawLine(
+        color = borderColor,
+        start = Offset(x = 0f, y = height),
+        end = Offset(x = width, y = height),
+        strokeWidth = strokeWidthPx
+    )
+
+    backgroundDraw(
+        0f, 0f,
+        width, height - strokeWidthPx,
+        0f, density
+    ).also {
+        drawPath(it, color = backgroundColor)
+    }
+}
 
 fun backgroundDraw(
     cornerLeft: Float, cornerRight: Float,
