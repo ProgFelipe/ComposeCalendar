@@ -35,31 +35,64 @@ private const val NUMBER_ROWS = 7
 
 @Composable
 fun MonthViewScreen() {
-    Row(Modifier.padding(20.dp)) {
-        repeat(4) {
+    Column {
+        Row(Modifier.padding(20.dp)) {
+            repeat(4) {
 
-            val order = when (it) {
-                0 -> BorderOrder.Start
-                1 -> BorderOrder.Center
-                2 -> BorderOrder.Center
-                3 -> BorderOrder.End
-                else -> BorderOrder.End
+                val order = when (it) {
+                    0 -> BorderOrder.Start
+                    1 -> BorderOrder.Center
+                    2 -> BorderOrder.Center
+                    3 -> BorderOrder.End
+                    else -> BorderOrder.End
+                }
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .drawSegmentedBorder(
+                            strokeWidth = 2.dp,
+                            borderColor = Color.Green,
+                            borderOrder = order,
+                            cornerPercent = 50,
+                            drawDivider = false,
+                            backgroundColor = Color.LightGray
+                        )
+                        .padding(4.dp)
+                ) {
+                    Text(text = "$it")
+                }
             }
+        }
 
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(80.dp)
-                    .drawSegmentedBorder(
-                        strokeWidth = 2.dp,
-                        color = Color.Green,
-                        borderOrder = order,
-                        cornerPercent = 40,
-                        drawDivider = false
-                    )
-                    .padding(4.dp)
-            ) {
-                Text(text = "$it")
+        Row(Modifier.padding(20.dp)) {
+            repeat(4) {
+
+                val order = when (it) {
+                    0 -> BorderOrder.Hole
+                    1 -> BorderOrder.Start
+                    2 -> BorderOrder.Center
+                    3 -> BorderOrder.End
+                    else -> BorderOrder.End
+                }
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .drawSegmentedBorder(
+                            strokeWidth = 2.dp,
+                            borderColor = Color.Green,
+                            borderOrder = order,
+                            cornerPercent = 50,
+                            drawDivider = false,
+                            backgroundColor = Color.LightGray
+                        )
+                        .padding(4.dp)
+                ) {
+                    Text(text = "$it")
+                }
             }
         }
     }
@@ -95,25 +128,37 @@ fun MonthViewScreen() {
 
 private val COLUMN_HEIGHT = 100.dp
 
+fun getWeekDaysFromCurrentDay() : List<String> {
+    val daysTitle = listOf(
+        Pair(Calendar.SUNDAY, "Sun"),
+        Pair(Calendar.MONDAY, "Mon"),
+        Pair(Calendar.TUESDAY, "Tue"),
+        Pair(Calendar.WEDNESDAY, "Wen"),
+        Pair(Calendar.THURSDAY, "Thu"),
+        Pair(Calendar.FRIDAY, "Fri"),
+        Pair(Calendar.SATURDAY, "Sat")
+    )
+    val currentDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+
+    val currentDay = daysTitle.indexOfFirst { it.first ==  currentDayOfWeek}
+    var counter = currentDay
+
+    val daysFromCurrentDay = arrayListOf<String>()
+    daysTitle.map { _ ->
+        daysFromCurrentDay.add(daysTitle[counter].second)
+        if(counter == daysTitle.size - 1){
+            counter = 0
+        } else {
+            counter++
+        }
+    }
+    return daysFromCurrentDay
+}
+
 @Composable
 fun MonthViewScreen2() {
     val list = CalendarEntity.calendarTest().days
-    val daysTitle = listOf(
-        Calendar.SUNDAY, Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY, Calendar.SATURDAY
-    )
-    val currentDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    val dayName = when (currentDayOfWeek) {
-        Calendar.SUNDAY -> "Sun"
-        Calendar.MONDAY -> "Mon"
-        Calendar.TUESDAY -> "Tue"
-        Calendar.WEDNESDAY -> "Wen"
-        Calendar.THURSDAY -> "Thu"
-        Calendar.FRIDAY -> "Fri"
-        Calendar.SATURDAY -> "Sat"
-        else -> {
-            ""
-        }
-    }
+
     Column {
         Row(
             modifier = Modifier
@@ -121,7 +166,7 @@ fun MonthViewScreen2() {
                 .fillMaxWidth()
         ) {
             // Text(modifier = Modifier.background(Color.Cyan), text = dayName)
-            (1..7).forEach {
+            (getWeekDaysFromCurrentDay()).forEach { dayName ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -202,15 +247,16 @@ fun CalendarItem(day: Day) {
                     )
                     .drawSegmentedBorder(
                         strokeWidth = 2.dp,
-                        color = Color.Green,
+                        borderColor = Color.Green,
                         borderOrder = borderType,
                         cornerPercent = 40,
-                        drawDivider = false
+                        drawDivider = false,
+                        backgroundColor = Color.LightGray
                     )
                     .align(rowAlignment)
             ) {
                 val modifier = Modifier
-                if (borderType == BorderOrder.HOLE || borderType == BorderOrder.Center) {
+                if (borderType == BorderOrder.Hole || borderType == BorderOrder.Center) {
                     modifier.fillMaxWidth()
                 }
                 val textAlignment = when (borderType) {
@@ -220,6 +266,8 @@ fun CalendarItem(day: Day) {
                 }
                 Text(modifier = modifier, text = it.name, textAlign = textAlignment)
             }
+            Text(text = borderType.name)
+            Text(text = "${it.getDayOfMonth(it.starDate)} - ${it.getDayOfMonth(it.endDate)}")
         }
     }
 }

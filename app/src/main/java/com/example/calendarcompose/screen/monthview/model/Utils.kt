@@ -16,16 +16,17 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 
 enum class BorderOrder {
-    Start, Center, End, HOLE
+    Start, Center, End, Hole
 }
 
 @SuppressLint("ModifierFactoryUnreferencedReceiver")
 fun Modifier.drawSegmentedBorder(
     strokeWidth: Dp,
-    color: Color,
+    borderColor: Color,
     cornerPercent: Int,
     borderOrder: BorderOrder,
-    drawDivider: Boolean = false
+    drawDivider: Boolean = false,
+    backgroundColor: Color
 ) = composed(
     factory = {
 
@@ -36,12 +37,13 @@ fun Modifier.drawSegmentedBorder(
             val width = size.width
             val height = size.height
             val cornerRadius = width * cornerPercent / 100
+            val cornerRadiusBackground = (width - strokeWidthPx) * cornerPercent / 100
 
             when (borderOrder) {
                 BorderOrder.Start -> {
 
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = width, y = 0f),
                         end = Offset(x = cornerRadius, y = 0f),
                         strokeWidth = strokeWidthPx
@@ -49,7 +51,7 @@ fun Modifier.drawSegmentedBorder(
 
                     // Top left arc
                     drawArc(
-                        color = color,
+                        color = borderColor,
                         startAngle = 180f,
                         sweepAngle = 90f,
                         useCenter = false,
@@ -58,14 +60,14 @@ fun Modifier.drawSegmentedBorder(
                         style = Stroke(width = strokeWidthPx)
                     )
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = 0f, y = cornerRadius),
                         end = Offset(x = 0f, y = height - cornerRadius),
                         strokeWidth = strokeWidthPx
                     )
                     // Bottom left arc
                     drawArc(
-                        color = color,
+                        color = borderColor,
                         startAngle = 90f,
                         sweepAngle = 90f,
                         useCenter = false,
@@ -74,26 +76,30 @@ fun Modifier.drawSegmentedBorder(
                         style = Stroke(width = strokeWidthPx)
                     )
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = cornerRadius, y = height),
                         end = Offset(x = width, y = height),
                         strokeWidth = strokeWidthPx
                     )
-
-                    /*backgroundDraw(cornerRadius, 0f + density.density, width, height - strokeWidthPx, density.density).also {
-                        drawPath(it, color = Color.Black)
-                    }*/
+                    backgroundDraw(
+                        cornerRadiusBackground, 0f + density.density,
+                        width, height - strokeWidthPx,
+                        density.density,
+                        density.density
+                    ).also {
+                        drawPath(it, color = backgroundColor)
+                    }
                 }
 
                 BorderOrder.Center -> {
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = 0f, y = 0f),
                         end = Offset(x = width, y = 0f),
                         strokeWidth = strokeWidthPx
                     )
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = 0f, y = height),
                         end = Offset(x = width, y = height),
                         strokeWidth = strokeWidthPx
@@ -101,22 +107,25 @@ fun Modifier.drawSegmentedBorder(
 
                     if (drawDivider) {
                         drawLine(
-                            color = color,
+                            color = borderColor,
                             start = Offset(x = 0f, y = 0f),
                             end = Offset(x = 0f, y = height),
                             strokeWidth = strokeWidthPx
                         )
                     }
-                    backgroundDraw(0f, 0f, width, height - strokeWidthPx, density.density).also {
-                        drawPath(it, color = Color.DarkGray)
+                    backgroundDraw(
+                        0f, 0f,
+                        width, height - strokeWidthPx,
+                        0f, density.density
+                    ).also {
+                        drawPath(it, color = backgroundColor)
                     }
                 }
 
                 else -> {
-
                     if (drawDivider) {
                         drawLine(
-                            color = color,
+                            color = borderColor,
                             start = Offset(x = 0f, y = 0f),
                             end = Offset(x = 0f, y = height),
                             strokeWidth = strokeWidthPx
@@ -124,7 +133,7 @@ fun Modifier.drawSegmentedBorder(
                     }
 
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = 0f, y = 0f),
                         end = Offset(x = width - cornerRadius, y = 0f),
                         strokeWidth = strokeWidthPx
@@ -132,7 +141,7 @@ fun Modifier.drawSegmentedBorder(
 
                     // Top right arc
                     drawArc(
-                        color = color,
+                        color = borderColor,
                         startAngle = 270f,
                         sweepAngle = 90f,
                         useCenter = false,
@@ -141,14 +150,14 @@ fun Modifier.drawSegmentedBorder(
                         style = Stroke(width = strokeWidthPx)
                     )
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = width, y = cornerRadius),
                         end = Offset(x = width, y = height - cornerRadius),
                         strokeWidth = strokeWidthPx
                     )
                     // Bottom right arc
                     drawArc(
-                        color = color,
+                        color = borderColor,
                         startAngle = 0f,
                         sweepAngle = 90f,
                         useCenter = false,
@@ -160,14 +169,18 @@ fun Modifier.drawSegmentedBorder(
                         style = Stroke(width = strokeWidthPx)
                     )
                     drawLine(
-                        color = color,
+                        color = borderColor,
                         start = Offset(x = 0f, y = height),
                         end = Offset(x = width - cornerRadius, y = height),
                         strokeWidth = strokeWidthPx
                     )
-
-                    backgroundDraw(0f, cornerRadius, width, height - strokeWidthPx, density.density).also {
-                        drawPath(it, color = Color.Cyan)
+                    backgroundDraw(
+                        0f, cornerRadiusBackground,
+                        width - density.density, height - strokeWidthPx,
+                        0f,
+                        density.density
+                    ).also {
+                        drawPath(it, color = backgroundColor)
                     }
                 }
             }
@@ -175,16 +188,19 @@ fun Modifier.drawSegmentedBorder(
     }
 )
 
-fun backgroundDraw(cornerLeft: Float, cornerRight: Float, x: Float, y: Float, density: Float): Path {
-
+fun backgroundDraw(
+    cornerLeft: Float, cornerRight: Float,
+    width: Float, height: Float,
+    x: Float, y: Float
+): Path {
     val cornerRadiusLeft = CornerRadius(cornerLeft, cornerLeft)
     val cornerRadiusRight = CornerRadius(cornerRight, cornerRight)
     return Path().apply {
         addRoundRect(
             RoundRect(
                 rect = Rect(
-                    offset = Offset(x = 0f + density, y = density),
-                    size = Size(x, y),
+                    offset = Offset(x, y),
+                    size = Size(width, height),
                 ),
                 topLeft = cornerRadiusLeft,
                 bottomLeft = cornerRadiusLeft,

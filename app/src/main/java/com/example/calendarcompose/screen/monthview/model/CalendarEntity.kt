@@ -1,6 +1,5 @@
 package com.example.calendarcompose.screen.monthview.model
 
-import android.util.Log
 import androidx.compose.ui.graphics.Color
 import java.util.Calendar
 import java.util.Date
@@ -19,7 +18,7 @@ data class CalendarEntity(
             val daySample = Day(
                 events = listOf(
                     Event(
-                        "test",
+                        "three",
                         EventType.BIRTHDAY,
                         persons = listOf(person, person2, person3),
                         calendar.time,
@@ -28,13 +27,14 @@ data class CalendarEntity(
             )
             val daySample2 = Day(
                 events = listOf(
-                    Event("temp", EventType.APPOINTMENT, persons = listOf(person, person3), calendar.time, calendar.time),
-                    Event("temp2", EventType.BIRTHDAY, persons = listOf(person, person3), calendar.time, calendar.time),
-                    Event("temp3", EventType.STUDY, persons = listOf(person, person3), calendar.time, calendar.time)
+                    Event("one", EventType.APPOINTMENT, persons = listOf(person, person3), calendar.time, calendar.time),
+                    Event("two", EventType.BIRTHDAY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 1) }
+                        .time),
+                    Event("three", EventType.STUDY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 2) }.time)
                 )
             )
             val daySample3 = Day(
-                events = listOf(Event("temp", EventType.APPOINTMENT, persons = listOf(person2, person3), calendar.time, calendar.time))
+                events = listOf(Event("five", EventType.APPOINTMENT, persons = listOf(person2, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 5) }.time))
             )
             val days = listOf(daySample, daySample2, daySample3)
             val list = arrayListOf<Day?>()
@@ -89,13 +89,19 @@ data class Event(
 ) {
     fun getBorderFromDate(date: Date) : BorderOrder {
         if(starDate == endDate){
-            return BorderOrder.HOLE
+            return BorderOrder.Hole
         }
         return when(date){
             starDate -> BorderOrder.Start
             endDate -> BorderOrder.End
             else -> BorderOrder.Center
         }
+    }
+
+    fun getDayOfMonth(date: Date): String {
+        val cal = Calendar.getInstance()
+        cal.time = date
+        return cal.get(Calendar.DAY_OF_MONTH).toString()
     }
 }
 

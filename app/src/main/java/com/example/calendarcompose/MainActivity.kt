@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // ThreeDayScreen(items, fixedItems)
-            MonthViewScreen2()
+            MonthViewScreen()
         }
     }
 }
