@@ -5,38 +5,19 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.calendarcompose.screen.monthview.model.BorderOrder
-import com.example.calendarcompose.screen.monthview.model.CalendarEntity
-import com.example.calendarcompose.screen.monthview.model.Day
 import com.example.calendarcompose.screen.monthview.model.drawSegmentedBorder
-import java.util.Calendar
-
-private const val NUMBER_ROWS = 7
-private val borderSize = 0.5.dp
 
 @Composable
 fun MonthViewScreen() {
@@ -113,160 +94,6 @@ fun MonthViewScreen() {
     }
 }
 
-private val COLUMN_HEIGHT = 100.dp
-
-fun getWeekDaysFromCurrentDay(): List<String> {
-    val daysTitle = listOf(
-        Pair(Calendar.SUNDAY, "Sun"),
-        Pair(Calendar.MONDAY, "Mon"),
-        Pair(Calendar.TUESDAY, "Tue"),
-        Pair(Calendar.WEDNESDAY, "Wen"),
-        Pair(Calendar.THURSDAY, "Thu"),
-        Pair(Calendar.FRIDAY, "Fri"),
-        Pair(Calendar.SATURDAY, "Sat")
-    )
-    val currentDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-
-    val currentDay = daysTitle.indexOfFirst { it.first == currentDayOfWeek }
-    var counter = currentDay
-
-    val daysFromCurrentDay = arrayListOf<String>()
-    daysTitle.map { _ ->
-        daysFromCurrentDay.add(daysTitle[counter].second)
-        if (counter == daysTitle.size - 1) {
-            counter = 0
-        } else {
-            counter++
-        }
-    }
-    return daysFromCurrentDay
-}
-
-@Composable
-fun MonthViewScreen2() {
-    val list = CalendarEntity.calendarTest().days
-
-    Column {
-        Row(
-            modifier = Modifier
-                .height(20.dp)
-                .fillMaxWidth()
-        ) {
-            // Text(modifier = Modifier.background(Color.Cyan), text = dayName)
-            (getWeekDaysFromCurrentDay()).forEach { dayName ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.Center), text = dayName, style = TextStyle(
-                            fontWeight =
-                            FontWeight.Bold
-                        )
-                    )
-                }
-            }
-        }
-
-        LazyVerticalGrid(
-            modifier = Modifier
-                .fillMaxSize(),
-            columns = GridCells.Fixed(NUMBER_ROWS),
-            // content padding
-            /*contentPadding = PaddingValues(
-            start = 12.dp,
-            top = 16.dp,
-            end = 12.dp,
-            bottom = 16.dp
-        ),*/
-            content = {
-                items(list.size) { index ->
-                    if (list[index] == null) {
-                        EmptyCard()
-                    } else {
-                        CalendarItem(list[index]!!)
-                    }
-                }
-            }
-        )
-    }
-}
-
-@Composable
-fun EmptyCard() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(COLUMN_HEIGHT)
-            .border(borderSize, SolidColor(Color.Black), shape = RectangleShape)
-    ) {
-    }
-}
-
-@Composable
-fun CalendarItem(day: Day) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(COLUMN_HEIGHT)
-            .background(Color.LightGray)
-            .drawBehind {
-                drawRect(Color.Black)
-            }
-            .drawBehind {
-                drawRect(Color.White, Offset(1f, 1f))
-            }
-    ) {
-
-
-        val cal: Calendar = Calendar.getInstance()
-        cal.setTime(day.date)
-
-        Text(text = cal.get(Calendar.DAY_OF_MONTH).toString())
-        day.events.forEach {
-            val borderType = it.getBorderFromDate(day.date)
-            val rowAlignment = when (borderType) {
-                BorderOrder.Start -> Alignment.End
-                BorderOrder.End -> Alignment.Start
-                else -> Alignment.CenterHorizontally
-            }
-            Row(
-                modifier = Modifier
-                    .drawSegmentedBorder(
-                        strokeWidth = 2.dp,
-                        borderColor = Color.Green,
-                        borderOrder = borderType,
-                        cornerPercent = 10,
-                        backgroundColor = Color.White
-                    )
-                    .fillMaxWidth()
-                    .align(rowAlignment)
-            ) {
-                val modifier = Modifier
-                if (borderType == BorderOrder.Hole || borderType == BorderOrder.Center) {
-                    modifier.fillMaxWidth()
-                }
-                if (borderType == BorderOrder.Hole) {
-                    modifier.padding(horizontal = 10.dp)
-                }
-                val textAlignment = when (borderType) {
-                    BorderOrder.Start -> TextAlign.End
-                    BorderOrder.End -> TextAlign.Start
-                    else -> TextAlign.Justify
-                }
-                Text(
-                    modifier = modifier, text = it.name, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = textAlignment,
-                )
-            }
-            Text(text = borderType.name)
-            Text(text = "${it.getDayOfMonth(it.starDate)} - ${it.getDayOfMonth(it.endDate)}")
-        }
-    }
-}
 
 @Preview
 @Composable

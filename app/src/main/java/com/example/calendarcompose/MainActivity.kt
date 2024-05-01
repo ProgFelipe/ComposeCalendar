@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
 import com.example.calendarcompose.model.DayEntity
 import com.example.calendarcompose.model.EventEntity
+import com.example.calendarcompose.screen.monthview.LocationLabelArea
 import com.example.calendarcompose.screen.monthview.MonthViewScreen
 import com.example.calendarcompose.screen.monthview.MonthViewScreen2
 import com.example.calendarcompose.screen.threeday.ThreeDayScreen
@@ -21,7 +22,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // ThreeDayScreen(items, fixedItems)
-            MonthViewScreen2()
+            //MonthViewScreen2()
+            LocationLabelArea(
+                locations = "Some location, Some, Some location, Some location, Some location"
+            )
         }
     }
 }

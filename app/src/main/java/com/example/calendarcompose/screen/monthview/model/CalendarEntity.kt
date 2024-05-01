@@ -1,9 +1,14 @@
 package com.example.calendarcompose.screen.monthview.model
 
 import androidx.compose.ui.graphics.Color
+import androidx.core.util.toRange
+import java.time.Duration
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
+import java.util.concurrent.TimeUnit
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 data class CalendarEntity(
@@ -18,7 +23,7 @@ data class CalendarEntity(
             val daySample = Day(
                 events = listOf(
                     Event(
-                        "Maria's Birthday",
+                        "Maria's Birthday is today awesome",
                         EventType.BIRTHDAY,
                         persons = listOf(person, person2, person3),
                         calendar.time,
@@ -103,6 +108,25 @@ data class Event(
         val cal = Calendar.getInstance()
         cal.time = date
         return cal.get(Calendar.DAY_OF_MONTH).toString()
+    }
+
+    fun getPositionInRange(date: Date) : Int {
+        //TimeUnit.MILLISECONDS.toDays(endDate.day - date.day)
+
+
+        /*val cal = Calendar.getInstance()
+        cal.time = date
+        val day1 = cal.get(Calendar.DAY_OF_MONTH)
+
+        val cal2 = Calendar.getInstance()
+        cal2.time = starDate
+        val day2 = cal2.get(Calendar.DAY_OF_MONTH)*/
+
+        val days = TimeUnit.DAYS.convert(starDate.time-date.time, TimeUnit.MILLISECONDS)
+
+
+        //val daysRounded = (endDate.time - date.time / (1000.0 * 60 * 60 * 24)).roundToInt()
+        return  days.toInt().absoluteValue
     }
 }
 
