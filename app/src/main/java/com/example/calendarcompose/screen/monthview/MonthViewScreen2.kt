@@ -63,7 +63,7 @@ fun MonthViewScreen2() {
                     if (list[index] == null) {
                         EmptyCard()
                     } else {
-                        CalendarItem(list[index]!!)
+                        CalendarItem(list[index]!!, list, index)
                     }
                 }
             }

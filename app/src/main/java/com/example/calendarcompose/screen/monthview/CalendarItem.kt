@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.calendarcompose.screen.monthview.model.BorderOrder
 import com.example.calendarcompose.screen.monthview.model.Day
@@ -34,10 +35,12 @@ private val COLUMN_HEIGHT = 100.dp
 private val borderSize = 0.5.dp
 
 @Composable
-fun CalendarItem(day: Day) {
+fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
 
     var componentWidth by remember { mutableFloatStateOf(0F) }
-    var text by remember { mutableStateOf("") }
+    val remainText = remember {
+        mutableStateOf<String>("")
+    }
     val density = LocalDensity.current
 
     Column(
@@ -58,8 +61,8 @@ fun CalendarItem(day: Day) {
         cal.setTime(day.date)
 
         Text(text = cal.get(Calendar.DAY_OF_MONTH).toString())
-        day.events.forEach { it ->
-            val borderType = it.getBorderFromDate(day.date)
+        day.events.forEach { event ->
+            val borderType = event.getBorderFromDate(day.date)
             val rowAlignment = when (borderType) {
                 BorderOrder.Start -> Alignment.End
                 BorderOrder.End -> Alignment.Start
@@ -72,13 +75,13 @@ fun CalendarItem(day: Day) {
                         borderColor = Color.Green,
                         borderOrder = borderType,
                         cornerPercent = 10,
-                        backgroundColor = it.eventType.color
+                        backgroundColor = event.eventType.color
                     )
                     .fillMaxWidth()
                     .onGloballyPositioned { coordinates ->
                         componentWidth = coordinates.parentLayoutCoordinates?.size?.width?.toFloat() ?: 0F
-                        val dayOffset = it.getPositionInRange(day.date)
-                        text = getTextToDraw(it.name, borderType, componentWidth, dayOffset)
+                        //val dayOffset = event.getPositionInRange(day.date)
+                        //text = getTextToDraw(event.name, borderType, componentWidth, dayOffset)
                     }
                     .align(rowAlignment)
             ) {
@@ -90,21 +93,52 @@ fun CalendarItem(day: Day) {
                     // modifier.padding(horizontal = 10.dp)
                 }
                 val textAlignment = when (borderType) {
-                    BorderOrder.Start -> TextAlign.End
+                    BorderOrder.Start -> TextAlign.Start
                     BorderOrder.End -> TextAlign.Start
                     else -> TextAlign.Justify
                 }
 
+                val textToDraw = if (borderType == BorderOrder.Center || borderType == BorderOrder.End) {
+                    list[index - 1]?.events?.find { eventx -> eventx.id == event.id }?.remainText ?: ""
+                }else{
+                    event.name
+                }
 
+                if(borderType == BorderOrder.End){
                     Text(
-                        modifier = modifier.width(componentWidth.dp), text = text, maxLines = 1,
-                        //overflow = TextOverflow.Ellipsis,
-                        textAlign = textAlignment
+                        modifier = modifier.fillMaxWidth(), text = textToDraw, maxLines = 1,
+                        // textAlign = textAlignment,
+                        textAlign = TextAlign.Center,
+                        onTextLayout = { textLayoutResult ->
+                            if (textLayoutResult.hasVisualOverflow) {
+                                val lineEndIndex = textLayoutResult.getLineEnd(
+                                    lineIndex = 0,
+                                    visibleEnd = false
+                                )
+                                event.remainText = textToDraw.substring(lineEndIndex)
+                            }
+                        }
                     )
-
+                } else {
+                    Text(
+                        modifier = modifier.fillMaxWidth(), text = textToDraw, maxLines = 1,
+                        // overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        onTextLayout = { textLayoutResult ->
+                            if (textLayoutResult.hasVisualOverflow) {
+                                val lineEndIndex = textLayoutResult.getLineEnd(
+                                    lineIndex = 0,
+                                    visibleEnd = false
+                                )
+                                event.remainText = textToDraw.substring(lineEndIndex)
+                            }
+                        }
+                    )
+                }
             }
             Text(text = borderType.name)
-            Text(text = "${it.getDayOfMonth(it.starDate)} - ${it.getDayOfMonth(it.endDate)}")
+            Text(text = borderType.name)
+            Text(text = "${event.getDayOfMonth(event.starDate)} - ${event.getDayOfMonth(event.endDate)}")
         }
     }
 }

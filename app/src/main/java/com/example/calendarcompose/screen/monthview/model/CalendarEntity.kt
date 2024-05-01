@@ -23,6 +23,7 @@ data class CalendarEntity(
             val daySample = Day(
                 events = listOf(
                     Event(
+                        1,
                         "Maria's Birthday is today awesome",
                         EventType.BIRTHDAY,
                         persons = listOf(person, person2, person3),
@@ -35,11 +36,13 @@ data class CalendarEntity(
                     /*Event("one", EventType.APPOINTMENT, persons = listOf(person, person3), calendar.time, calendar.time),
                     Event("two", EventType.BIRTHDAY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 1) }
                         .time),*/
-                    Event("three", EventType.STUDY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 2) }.time)
+                    Event(2, "three", EventType.STUDY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 2) }
+                        .time)
                 )
             )
             val daySample3 = Day(
-                events = listOf(Event("five", EventType.APPOINTMENT, persons = listOf(person2, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 5) }.time))
+                events = listOf(Event(3,"five", EventType.APPOINTMENT, persons = listOf(person2, person3), calendar.time,
+                    calendar.also { it.add(Calendar.DATE, 5) }.time))
             )
             val days = listOf(daySample, daySample2, daySample3)
             val list = arrayListOf<Day?>()
@@ -47,7 +50,7 @@ data class CalendarEntity(
 
             val dateInfo = GregorianCalendar()
 
-            (0..200).forEach { _ ->
+            (0..200).forEach { index ->
                 // Add empty view
                 if ((list.size - extraSpaces) % 30 == 0) {
                     if (list.size > 0) {
@@ -61,7 +64,7 @@ data class CalendarEntity(
                     extraSpaces += 2
                 }
                 // val day = days[Random.nextInt(0, 2)]
-                val day = daySample
+                val day = if(index < 3) {daySample}else{daySample2}
 
                 val change = day.copy()
                 change.date = dateInfo.time
@@ -81,17 +84,19 @@ data class Person(
 )
 
 enum class EventType(val color: Color) {
-    BIRTHDAY(Color.Cyan),
+    BIRTHDAY(Color.LightGray),
     APPOINTMENT(Color.Blue),
     STUDY(Color.Green)
 }
 
 data class Event(
+    val id : Int,
     val name: String = "",
     val eventType: EventType,
     val persons: List<Person> = listOf(),
     val starDate: Date,
-    val endDate: Date
+    val endDate: Date,
+    var remainText: String = ""
 ) {
     fun getBorderFromDate(date: Date) : BorderOrder {
         if(starDate == endDate){

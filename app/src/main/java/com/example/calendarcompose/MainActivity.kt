@@ -22,10 +22,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // ThreeDayScreen(items, fixedItems)
-            //MonthViewScreen2()
-            LocationLabelArea(
+            MonthViewScreen2()
+            /*LocationLabelArea(
                 locations = "Some location, Some, Some location, Some location, Some location"
-            )
+            )*/
         }
     }
 }
