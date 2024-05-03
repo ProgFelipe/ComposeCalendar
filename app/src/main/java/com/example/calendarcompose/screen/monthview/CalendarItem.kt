@@ -1,14 +1,9 @@
 package com.example.calendarcompose.screen.monthview
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,13 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.calendarcompose.screen.monthview.model.BorderOrder
 import com.example.calendarcompose.screen.monthview.model.Day
@@ -35,6 +28,7 @@ import java.util.Calendar
 
 private val COLUMN_HEIGHT = 100.dp
 private val borderSize = 0.5.dp
+private const val MAX_EVENTS_X_DAY = 3
 
 @Composable
 fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
@@ -49,39 +43,47 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .height(COLUMN_HEIGHT)
-            .background(Color.LightGray)
+            //.background(Color.LightGray)
+            //.border(borderSize, SolidColor(Color.Black), shape = RectangleShape)
             .drawBehind {
                 drawRect(Color.Black)
             }
             .drawBehind {
-                drawRect(Color.White, Offset(1f, 1f))
+                val w = this.size.width - 2f
+                val h = this.size.height - 2f
+                drawRect(Color.White, Offset(1f, 1f), size = Size(w, h))
             }
     ) {
-
 
         val cal: Calendar = Calendar.getInstance()
         cal.setTime(day.date)
 
         Text(text = cal.get(Calendar.DAY_OF_MONTH).toString())
+        var rows = 0
         day.events.forEachIndexed { eventIndex, event ->
 
             // calculate previous spaces
-            val currentIndex = event.position -1
-            if(currentIndex >= 0){
+            val currentIndex = event.position - 1
+            if (currentIndex >= 0) {
                 var from = currentIndex
-                while (from >= 0){
-                    val result =  day.events.firstOrNull { it.position == from }
-                    if(result == null) {
+                while (from >= 0) {
+                    val result = day.events.firstOrNull { it.position == from }
+                    if (result == null) {
                         Text(modifier = Modifier.height(20.dp), text = "no $from")
+                        rows++
                         //Spacer(modifier = Modifier.size(20.dp))
-                    }else{
+                    } else {
                         //Text(text = "si $from")
                         from = -1
                     }
                     from--
                 }
-
             }
+            if (rows == MAX_EVENTS_X_DAY) {
+                Text(text = "More..")
+                return
+            }
+            rows++
 
             val borderType = event.getBorderFromDate(day.date)
             val rowAlignment = when (borderType) {
@@ -121,38 +123,38 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
 
                 val textToDraw = if (borderType == BorderOrder.Center || borderType == BorderOrder.End) {
                     list[index - 1]?.events?.find { eventx -> eventx.id == event.id }?.remainText ?: ""
-                }else{
+                } else {
                     event.name
                 }
 
-                if(borderType == BorderOrder.End){
+                if (borderType == BorderOrder.End) {
                     Text(
-                        modifier = modifier.fillMaxWidth(), text = textToDraw, maxLines = 1,
+                        modifier = modifier.fillMaxWidth(), text = event.name, maxLines = 1,
                         // textAlign = textAlignment,
                         textAlign = TextAlign.Center,
                         onTextLayout = { textLayoutResult ->
-                            if (textLayoutResult.hasVisualOverflow) {
+                            /*if (textLayoutResult.hasVisualOverflow) {
                                 val lineEndIndex = textLayoutResult.getLineEnd(
                                     lineIndex = 0,
                                     visibleEnd = false
                                 )
                                 event.remainText = textToDraw.substring(lineEndIndex)
-                            }
+                            }*/
                         }
                     )
                 } else {
                     Text(
-                        modifier = modifier.fillMaxWidth(), text = textToDraw, maxLines = 1,
+                        modifier = modifier.fillMaxWidth(), text = event.name, maxLines = 1,
                         // overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
                         onTextLayout = { textLayoutResult ->
-                            if (textLayoutResult.hasVisualOverflow) {
+                            /*if (textLayoutResult.hasVisualOverflow) {
                                 val lineEndIndex = textLayoutResult.getLineEnd(
                                     lineIndex = 0,
                                     visibleEnd = false
                                 )
                                 event.remainText = textToDraw.substring(lineEndIndex)
-                            }
+                            }*/
                         }
                     )
                 }
@@ -171,7 +173,7 @@ fun EmptyCard() {
         modifier = Modifier
             .fillMaxWidth()
             .height(COLUMN_HEIGHT)
-            .border(borderSize, SolidColor(Color.Black), shape = RectangleShape)
+        //.border(borderSize, SolidColor(Color.Black), shape = RectangleShape)
     ) {
     }
 }

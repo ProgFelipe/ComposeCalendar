@@ -15,94 +15,99 @@ data class CalendarEntity(
 
 
     companion object {
-        var calendar = arrayListOf<ArrayDeque<Day>>()
+        private const val NUMBER_OF_ELEMENTS = 200
+
         private const val MAX_EVENTS_X_DAY = 4
         private const val MAX_DAYS_X_EVENT = 3
+        private const val EMPTY_SPACES = 7
 
         fun getMockedCalendarEntity(): CalendarEntity {
-            val person = Person("Artur", Color.Blue)
-            val person2 = Person("Charles", Color.Green)
-            val person3 = Person("Violet", Color.Cyan)
-            val calendar: Calendar = Calendar.getInstance()
-            val daySample = Day(
-                events = listOf(
-                    Event(
-                        "1",
-                        "Maria's Birthday is today awesome",
-                        EventType.BIRTHDAY,
-                        persons = listOf(person, person2, person3),
-                        calendar.time,
-                        calendar.also { it.add(Calendar.DATE, 2) }
-                            .time))
-            )
-            val daySample2 = Day(
-                events = listOf(
-                    /*Event("one", EventType.APPOINTMENT, persons = listOf(person, person3), calendar.time, calendar.time),
-                    Event("two", EventType.BIRTHDAY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 1) }
-                        .time),*/
-                    Event("2", "three", EventType.STUDY, persons = listOf(person, person3), calendar.time, calendar.also { it.add(Calendar.DATE, 2) }
-                        .time)
-                )
-            )
-            val daySample3 = Day(
-                events = listOf(
-                    Event(
-                        "3", "five", EventType.APPOINTMENT, persons = listOf(person2, person3), calendar.time,
-                        calendar.also { it.add(Calendar.DATE, 5) }.time
-                    )
-                )
-            )
-            val days = listOf(daySample, daySample2, daySample3)
-            var extraSpaces = 0
 
             val list = arrayListOf<Day?>()
             val dateInfo = GregorianCalendar()
+            val positionsPerDay = (0..MAX_EVENTS_X_DAY)
 
-            (0..200).forEach { index ->
-                // Add empty view
-                addEmptyDays(list, extraSpaces)
-                // val day = days[Random.nextInt(0, 2)]
-                /*val day = if(index < 3) {daySample}else{daySample2}
+            var addExtraSpaces = false
+            (0..NUMBER_OF_ELEMENTS).forEach { _ ->
 
-                val change = day.copy()
-                change.date = dateInfo.time
-                list.add(change)
-                dateInfo.roll(Calendar.DAY_OF_YEAR, true)*/
+                val daysInMonth = dateInfo.getActualMaximum(Calendar.DAY_OF_MONTH)
+                val day = dateInfo.get(Calendar.DAY_OF_MONTH)
+
+                // region addSpaces
+                if (addExtraSpaces) {
+                    var extraSpaces1 = 0
+                    (1..EMPTY_SPACES).forEach { _ ->
+                        list.add(null)
+                        extraSpaces1 += 1
+                    }
+                }
+
+                // endregion
+
+                //addEmptyDays(list, extraSpaces, dateInfo.getActualMaximum(Calendar.DAY_OF_MONTH))
 
                 val listOfEventsXDay = arrayListOf<Event>()
 
-                // Add previous events present on this day
-                var lastPosition = 0
-                if (list.isNotEmpty()) {
-                    list[list.size - 1]?.events?.map {
-                        if (it.endDate >= dateInfo.time) {
-                            listOfEventsXDay.add(it)
-                        }
-                    }
-                }
-                if (listOfEventsXDay.isNotEmpty()) {
-                    lastPosition = listOfEventsXDay.last().position + 1
+                val daysOffset = if (addExtraSpaces) {
+                    addExtraSpaces = false
+                    EMPTY_SPACES+1
+                } else {
+                    1
                 }
 
+                if (day == daysInMonth) {
+                    addExtraSpaces = true
+                }
+                if (list.isNotEmpty()) {
+                    val previousDayEvents = list[list.size - daysOffset]?.events
+                    addPreviousEventsPresentOnThisDay(previousDayEvents, dateInfo, listOfEventsXDay)
+                }
+
+                val availablePositions = getRemainPositions(listOfEventsXDay, positionsPerDay)
 
                 if (listOfEventsXDay.size < MAX_DAYS_X_EVENT) {
+                    var indexAvailablePositions: Int
                     for (i in 0..Random.nextInt(0, MAX_EVENTS_X_DAY - listOfEventsXDay.size)) {
-                        // generate
-                        listOfEventsXDay.add(generateEvent(i + lastPosition, dateInfo.time, MAX_DAYS_X_EVENT))
-                        // add event to day
+                        indexAvailablePositions = if (availablePositions.size > i) {
+                            availablePositions[i]
+                        } else {
+                            i
+                        }
+                        listOfEventsXDay.add(generateEvent(indexAvailablePositions, dateInfo.time))
                     }
                 }
+
+                listOfEventsXDay.sortBy { it.position }
 
                 list.add(Day(dateInfo.time, events = listOfEventsXDay))
                 dateInfo.roll(Calendar.DAY_OF_YEAR, true)
             }
 
-            return CalendarEntity(
-                list
-            )
+            return CalendarEntity(list)
         }
 
-        private fun generateEvent(position: Int, initDay: Date, maxDaysXEvent: Int): Event {
+        private fun addPreviousEventsPresentOnThisDay(
+            list: List<Event>?,
+            dateInfo: GregorianCalendar,
+            listOfEventsXDay: ArrayList<Event>
+        ) {
+            list?.map {
+                if (it.endDate >= dateInfo.time) {
+                    listOfEventsXDay.add(it)
+                }
+            }
+        }
+
+        private fun getRemainPositions(
+            listOfEventsXDay: ArrayList<Event>,
+            positionsPerDay: IntRange
+        ): ArrayList<Int> {
+            val userPositions = listOfEventsXDay.map { it.position }
+            val availablePositionsList: List<Int> = positionsPerDay.filter { it !in userPositions }
+            return ArrayList(availablePositionsList)
+        }
+
+        private fun generateEvent(position: Int, initDay: Date): Event {
             val person = Person("Artur", Color.Blue)
             val person2 = Person("Charles", Color.Green)
             val person3 = Person("Violet", Color.Cyan)
@@ -110,7 +115,7 @@ data class CalendarEntity(
             calendar.time = initDay
             val initDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
 
-            val endCalendar = calendar.also { it.add(Calendar.DATE, maxDaysXEvent) }
+            val endCalendar = calendar.also { it.add(Calendar.DATE, MAX_DAYS_X_EVENT) }
 
             val endDayOfMonth = endCalendar.get(Calendar.DAY_OF_MONTH)
             val endDay = endCalendar.time
@@ -126,18 +131,15 @@ data class CalendarEntity(
             )
         }
 
-        private fun addEmptyDays(list: ArrayList<Day?>, extraSpaces: Int) {
+        private fun addEmptyDays(list: ArrayList<Day?>, extraSpaces: Int, daysInMonth: Int) {
             var extraSpaces1 = extraSpaces
-            if ((list.size - extraSpaces1) % 30 == 0) {
+            if ((list.size - extraSpaces1) % daysInMonth == 0) {
                 if (list.size > 0) {
-                    list.add(null)
-                    list.add(null)
-                    list.add(null)
-                    extraSpaces1 += 3
+                    (0..35 - daysInMonth).forEach {
+                        list.add(null)
+                        extraSpaces1 += 1
+                    }
                 }
-                list.add(null)
-                list.add(null)
-                extraSpaces1 += 2
             }
         }
     }
