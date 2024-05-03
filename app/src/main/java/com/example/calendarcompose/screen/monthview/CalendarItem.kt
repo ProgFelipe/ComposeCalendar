@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,7 +63,26 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
         cal.setTime(day.date)
 
         Text(text = cal.get(Calendar.DAY_OF_MONTH).toString())
-        day.events.forEach { event ->
+        day.events.forEachIndexed { eventIndex, event ->
+
+            // calculate previous spaces
+            val currentIndex = event.position -1
+            if(currentIndex >= 0){
+                var from = currentIndex
+                while (from >= 0){
+                    val result =  day.events.firstOrNull { it.position == from }
+                    if(result == null) {
+                        Text(modifier = Modifier.height(20.dp), text = "no $from")
+                        //Spacer(modifier = Modifier.size(20.dp))
+                    }else{
+                        //Text(text = "si $from")
+                        from = -1
+                    }
+                    from--
+                }
+
+            }
+
             val borderType = event.getBorderFromDate(day.date)
             val rowAlignment = when (borderType) {
                 BorderOrder.Start -> Alignment.End
@@ -136,9 +157,9 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
                     )
                 }
             }
-            Text(text = borderType.name)
-            Text(text = borderType.name)
-            Text(text = "${event.getDayOfMonth(event.starDate)} - ${event.getDayOfMonth(event.endDate)}")
+            //Text(text = borderType.name)
+            //Text(text = borderType.name)
+            //Text(text = "${event.getDayOfMonth(event.starDate)} - ${event.getDayOfMonth(event.endDate)}")
         }
     }
 }

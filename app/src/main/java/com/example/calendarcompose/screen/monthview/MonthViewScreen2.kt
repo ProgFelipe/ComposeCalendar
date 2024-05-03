@@ -21,7 +21,7 @@ private const val NUMBER_ROWS = 7
 
 @Composable
 fun MonthViewScreen2() {
-    val list = CalendarEntity.calendarTest().days
+    val list = CalendarEntity.getMockedCalendarEntity().days
 
     Column {
         Row(
