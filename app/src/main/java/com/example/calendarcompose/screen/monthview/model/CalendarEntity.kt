@@ -2,6 +2,7 @@ package com.example.calendarcompose.screen.monthview.model
 
 import android.util.Log
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
@@ -102,7 +103,7 @@ data class CalendarEntity(
 
         private fun generateEvent(position: Int, initDay: Date): Event {
             val person = Person("Artur", Color.Blue)
-            val person2 = Person("Charles", Color.Green)
+            val person2 = Person("Charles", Color.LightGray)
             val person3 = Person("Violet", Color.Cyan)
 
             val calendar: Calendar = Calendar.getInstance()
@@ -119,7 +120,8 @@ data class CalendarEntity(
 
             return Event(
                 UUID.randomUUID().toString(),
-                "$position $initDayOfMonth - $endDayOfMonth",
+                //"$position $initDayOfMonth - $endDayOfMonth",
+                LoremIpsum(20).values.joinToString(),
                 EventType.entries.toTypedArray().random(random),
                 persons = listOf(person, person2, person3),
                 initDay,

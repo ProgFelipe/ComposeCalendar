@@ -33,7 +33,7 @@ private val borderSize = 0.5.dp
 private const val MAX_EVENTS_X_DAY = 3
 
 @Composable
-fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick : (events: List<Event>) -> Unit) {
+fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick: (events: List<Event>) -> Unit) {
 
     var componentWidth by remember { mutableFloatStateOf(0F) }
     val remainText = remember {
@@ -72,7 +72,7 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick : (events: List
                 while (from >= 0) {
                     val result = day.events.firstOrNull { it.position == from }
                     if (result == null) {
-                        Text(modifier = Modifier.height(20.dp), text = "no $from")
+                        Text( text = "no $from")
                         rows++
                         //Spacer(modifier = Modifier.size(20.dp))
                     } else {
@@ -98,7 +98,7 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick : (events: List
                 modifier = Modifier
                     .drawSegmentedBorder(
                         strokeWidth = 2.dp,
-                        borderColor = Color.Green,
+                        borderColor = Color.Black,
                         borderOrder = borderType,
                         cornerPercent = 10,
                         backgroundColor = event.eventType.color
@@ -112,11 +112,18 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick : (events: List
                     .align(rowAlignment)
             ) {
                 val modifier = Modifier
+                var textAlign : TextAlign = TextAlign.End
                 if (borderType == BorderOrder.Hole || borderType == BorderOrder.Center) {
                     modifier.fillMaxWidth()
+                    modifier.align(Alignment.CenterVertically)
+                    textAlign = TextAlign.Center
+                }
+                if (borderType == BorderOrder.End) {
+                    textAlign = TextAlign.Start
+                    // modifier.padding(horizontal = 10.dp)
                 }
                 if (borderType == BorderOrder.Hole) {
-                    // modifier.padding(horizontal = 10.dp)
+                    textAlign = TextAlign.Center
                 }
                 val textAlignment = when (borderType) {
                     BorderOrder.Start -> TextAlign.Start
@@ -130,37 +137,37 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick : (events: List
                     event.name
                 }
 
-                if (borderType == BorderOrder.End) {
+                /*if (borderType == BorderOrder.End) {
                     Text(
-                        modifier = modifier.fillMaxWidth(), text = event.name, maxLines = 1,
+                        modifier = modifier.fillMaxWidth(), text = textToDraw, maxLines = 1,
                         // textAlign = textAlignment,
                         textAlign = TextAlign.Center,
                         onTextLayout = { textLayoutResult ->
-                            /*if (textLayoutResult.hasVisualOverflow) {
+                            if (textLayoutResult.hasVisualOverflow) {
                                 val lineEndIndex = textLayoutResult.getLineEnd(
                                     lineIndex = 0,
                                     visibleEnd = false
                                 )
                                 event.remainText = textToDraw.substring(lineEndIndex)
-                            }*/
+                            }
                         }
                     )
-                } else {
-                    Text(
-                        modifier = modifier.fillMaxWidth(), text = event.name, maxLines = 1,
-                        // overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        onTextLayout = { textLayoutResult ->
-                            /*if (textLayoutResult.hasVisualOverflow) {
-                                val lineEndIndex = textLayoutResult.getLineEnd(
-                                    lineIndex = 0,
-                                    visibleEnd = false
-                                )
-                                event.remainText = textToDraw.substring(lineEndIndex)
-                            }*/
+                } else {*/
+                Text(
+                    modifier = modifier.fillMaxWidth(), text = textToDraw, maxLines = 1,
+                    // overflow = TextOverflow.Ellipsis,
+                    textAlign = textAlign,
+                    onTextLayout = { textLayoutResult ->
+                        if (textLayoutResult.hasVisualOverflow) {
+                            val lineEndIndex = textLayoutResult.getLineEnd(
+                                lineIndex = 0,
+                                visibleEnd = true
+                            )
+                            event.remainText = textToDraw.substring(lineEndIndex)
                         }
-                    )
-                }
+                    }
+                )
+
             }
             //Text(text = borderType.name)
             //Text(text = borderType.name)

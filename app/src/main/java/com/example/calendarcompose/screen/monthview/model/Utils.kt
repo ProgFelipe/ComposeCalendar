@@ -69,7 +69,7 @@ fun Modifier.drawSegmentedBorder(
                     cornerRadiusBackground
                 )
                 BorderOrder.Hole -> {
-                    drawRoundRect(borderColor, Offset(0f+4f, 0f), Size(width-8f, height) , CornerRadius(cornerRadius, cornerRadius))
+                    drawRoundRect(backgroundColor, Offset(0f+4f, 0f), Size(width-8f, height) , CornerRadius(cornerRadius, cornerRadius))
                 }
             }
         }
