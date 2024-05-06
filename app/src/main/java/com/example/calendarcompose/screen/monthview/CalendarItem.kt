@@ -1,5 +1,6 @@
 package com.example.calendarcompose.screen.monthview
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.calendarcompose.screen.monthview.model.BorderOrder
 import com.example.calendarcompose.screen.monthview.model.Day
+import com.example.calendarcompose.screen.monthview.model.Event
 import com.example.calendarcompose.screen.monthview.model.drawSegmentedBorder
 import java.util.Calendar
 
@@ -31,7 +33,7 @@ private val borderSize = 0.5.dp
 private const val MAX_EVENTS_X_DAY = 3
 
 @Composable
-fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
+fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick : (events: List<Event>) -> Unit) {
 
     var componentWidth by remember { mutableFloatStateOf(0F) }
     val remainText = remember {
@@ -43,6 +45,7 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .height(COLUMN_HEIGHT)
+            .clickable { onClick(day.events) }
             //.background(Color.LightGray)
             //.border(borderSize, SolidColor(Color.Black), shape = RectangleShape)
             .drawBehind {
@@ -58,7 +61,7 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int) {
         val cal: Calendar = Calendar.getInstance()
         cal.setTime(day.date)
 
-        Text(text = cal.get(Calendar.DAY_OF_MONTH).toString())
+        Text(text = "D:${cal.get(Calendar.DAY_OF_MONTH)}-E:${day.events.size}")
         var rows = 0
         day.events.forEachIndexed { eventIndex, event ->
 

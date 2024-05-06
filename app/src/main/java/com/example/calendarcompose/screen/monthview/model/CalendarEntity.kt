@@ -1,5 +1,6 @@
 package com.example.calendarcompose.screen.monthview.model
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import java.util.Calendar
 import java.util.Date
@@ -8,6 +9,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.math.absoluteValue
 import kotlin.random.Random
+import kotlin.random.asKotlinRandom
 
 data class CalendarEntity(
     val days: List<Day?> = listOf()
@@ -15,10 +17,10 @@ data class CalendarEntity(
 
 
     companion object {
-        private const val NUMBER_OF_ELEMENTS = 200
+        private const val NUMBER_OF_ELEMENTS = 2000
 
-        private const val MAX_EVENTS_X_DAY = 4
-        private const val MAX_DAYS_X_EVENT = 3
+        private const val MAX_EVENTS_X_DAY = 3
+        private const val MAX_DAYS_X_EVENT = 5
         private const val EMPTY_SPACES = 7
 
         fun getMockedCalendarEntity(): CalendarEntity {
@@ -28,6 +30,7 @@ data class CalendarEntity(
             val positionsPerDay = (0..MAX_EVENTS_X_DAY)
 
             var addExtraSpaces = false
+
             (0..NUMBER_OF_ELEMENTS).forEach { _ ->
 
                 val daysInMonth = dateInfo.getActualMaximum(Calendar.DAY_OF_MONTH)
@@ -35,18 +38,11 @@ data class CalendarEntity(
 
                 // region addSpaces
                 if (addExtraSpaces) {
-                    var extraSpaces1 = 0
                     (1..EMPTY_SPACES).forEach { _ ->
                         list.add(null)
-                        extraSpaces1 += 1
                     }
                 }
-
                 // endregion
-
-                //addEmptyDays(list, extraSpaces, dateInfo.getActualMaximum(Calendar.DAY_OF_MONTH))
-
-                val listOfEventsXDay = arrayListOf<Event>()
 
                 val daysOffset = if (addExtraSpaces) {
                     addExtraSpaces = false
@@ -54,10 +50,11 @@ data class CalendarEntity(
                 } else {
                     1
                 }
-
                 if (day == daysInMonth) {
                     addExtraSpaces = true
                 }
+
+                val listOfEventsXDay = arrayListOf<Event>()
                 if (list.isNotEmpty()) {
                     val previousDayEvents = list[list.size - daysOffset]?.events
                     addPreviousEventsPresentOnThisDay(previousDayEvents, dateInfo, listOfEventsXDay)
@@ -65,22 +62,17 @@ data class CalendarEntity(
 
                 val availablePositions = getRemainPositions(listOfEventsXDay, positionsPerDay)
 
-                if (listOfEventsXDay.size < MAX_DAYS_X_EVENT) {
-                    var indexAvailablePositions: Int
-                    for (i in 0..Random.nextInt(0, MAX_EVENTS_X_DAY - listOfEventsXDay.size)) {
-                        indexAvailablePositions = if (availablePositions.size > i) {
-                            availablePositions[i]
-                        } else {
-                            i
-                        }
-                        listOfEventsXDay.add(generateEvent(indexAvailablePositions, dateInfo.time))
+                if (listOfEventsXDay.size < MAX_EVENTS_X_DAY) {
+                    for (i in 0..<availablePositions.size) {
+                        val position = availablePositions[i]
+                        listOfEventsXDay.add(generateEvent(position, dateInfo.time))
                     }
                 }
 
                 listOfEventsXDay.sortBy { it.position }
 
                 list.add(Day(dateInfo.time, events = listOfEventsXDay))
-                dateInfo.roll(Calendar.DAY_OF_YEAR, true)
+                dateInfo.add(Calendar.DATE, 1)
             }
 
             return CalendarEntity(list)
@@ -88,11 +80,13 @@ data class CalendarEntity(
 
         private fun addPreviousEventsPresentOnThisDay(
             list: List<Event>?,
-            dateInfo: GregorianCalendar,
+            currentDay: GregorianCalendar,
             listOfEventsXDay: ArrayList<Event>
         ) {
             list?.map {
-                if (it.endDate >= dateInfo.time) {
+                Log.d("CALC", "${it.endDate} >= ${currentDay.time}")
+                if (it.endDate >= currentDay.time) {
+                    Log.d("CALC", "ADDED")
                     listOfEventsXDay.add(it)
                 }
             }
@@ -101,29 +95,32 @@ data class CalendarEntity(
         private fun getRemainPositions(
             listOfEventsXDay: ArrayList<Event>,
             positionsPerDay: IntRange
-        ): ArrayList<Int> {
-            val userPositions = listOfEventsXDay.map { it.position }
-            val availablePositionsList: List<Int> = positionsPerDay.filter { it !in userPositions }
-            return ArrayList(availablePositionsList)
+        ): List<Int> {
+            val eventsPositionInColumn = listOfEventsXDay.map { it.position }
+            return positionsPerDay.filter { it !in eventsPositionInColumn }.sorted()
         }
 
         private fun generateEvent(position: Int, initDay: Date): Event {
             val person = Person("Artur", Color.Blue)
             val person2 = Person("Charles", Color.Green)
             val person3 = Person("Violet", Color.Cyan)
+
             val calendar: Calendar = Calendar.getInstance()
             calendar.time = initDay
+
             val initDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
 
-            val endCalendar = calendar.also { it.add(Calendar.DATE, MAX_DAYS_X_EVENT) }
+            val endCalendar = calendar.also { it.add(Calendar.DAY_OF_YEAR, Random.nextInt(0, MAX_DAYS_X_EVENT)) }
 
             val endDayOfMonth = endCalendar.get(Calendar.DAY_OF_MONTH)
             val endDay = endCalendar.time
 
+            val random = java.util.Random().asKotlinRandom()
+
             return Event(
                 UUID.randomUUID().toString(),
                 "$position $initDayOfMonth - $endDayOfMonth",
-                EventType.BIRTHDAY,
+                EventType.entries.toTypedArray().random(random),
                 persons = listOf(person, person2, person3),
                 initDay,
                 endDay,
@@ -152,7 +149,7 @@ data class Person(
 
 enum class EventType(val color: Color) {
     BIRTHDAY(Color.LightGray),
-    APPOINTMENT(Color.Blue),
+    APPOINTMENT(Color.Magenta),
     STUDY(Color.Green)
 }
 
