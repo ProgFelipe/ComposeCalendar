@@ -117,7 +117,7 @@ data class CalendarEntity(
             return Event(
                 UUID.randomUUID().toString(),
                 //"$position $initDayOfMonth - $endDayOfMonth",
-                LoremIpsum(20).values.joinToString(),
+                LoremIpsum(40).values.joinToString(),
                 EventType.entries.toTypedArray().random(random),
                 persons = listOf(person, person2, person3),
                 initDay,
