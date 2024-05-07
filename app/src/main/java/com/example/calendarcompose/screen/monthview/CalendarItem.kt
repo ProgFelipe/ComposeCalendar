@@ -119,7 +119,12 @@ fun CalendarItem(day: Day, list: List<Day?>, index: Int, onClick: (events: List<
                 }
 
                 val textToDraw = if (borderType == BorderOrder.Center || borderType == BorderOrder.End) {
-                    list[index - 1]?.events?.find { preiousDayEvent -> preiousDayEvent.id == event.id }?.remainText ?: ""
+                    val lastDay = if(list[index - 1] == null){
+                        list[index - 8]
+                    }else{
+                        list[index - 1]
+                    }
+                    lastDay?.events?.find { preiousDayEvent -> preiousDayEvent.id == event.id }?.remainText ?: ""
                 } else {
                     event.name
                 }
