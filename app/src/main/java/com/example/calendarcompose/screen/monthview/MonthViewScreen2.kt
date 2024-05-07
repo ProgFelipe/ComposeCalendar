@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -21,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +31,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.calendarcompose.screen.monthview.model.CalendarEntity
+import com.example.calendarcompose.screen.monthview.model.Day
 import com.example.calendarcompose.screen.monthview.model.Event
 import kotlinx.coroutines.launch
 
@@ -40,16 +41,18 @@ private const val NUMBER_ROWS = 7
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthViewScreen2() {
-    val list = CalendarEntity.getMockedCalendarEntity().days
+    val list2 = CalendarEntity.getMockedCalendarEntity().days
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     var eventsDetails by remember { mutableStateOf<List<Event>>(emptyList()) }
+    val list = remember { mutableStateListOf<Day?>()}
+    list.addAll(list2)
 
     Scaffold {
         if (showBottomSheet) {
             ModalBottomSheet(
-                modifier = Modifier.padding(horizontal = 20.dp).clickable {
+                modifier = Modifier.clickable {
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         if (!sheetState.isVisible) {
                             showBottomSheet = false
@@ -62,13 +65,12 @@ fun MonthViewScreen2() {
                 sheetState = sheetState
             ) {
                 // Sheet content
-                Text(modifier = Modifier.fillMaxWidth(), text = "Description:")
+                Text(modifier = Modifier.fillMaxWidth(), text = "Events:")
                 Spacer(modifier = Modifier.height(20.dp))
 
                 eventsDetails.forEach {
                     Text(modifier = Modifier.fillMaxWidth().background(it.eventType.color), text = "ID:"+ it.id + " "+ it.name + "\n")
                     Spacer(modifier = Modifier.height(20.dp))
-
                 }
             }
         }
@@ -80,7 +82,6 @@ fun MonthViewScreen2() {
                     .height(20.dp)
                     .fillMaxWidth()
             ) {
-                // Text(modifier = Modifier.background(Color.Cyan), text = dayName)
                 (getWeekDaysFromCurrentDay()).forEach { dayName ->
                     Box(
                         modifier = Modifier

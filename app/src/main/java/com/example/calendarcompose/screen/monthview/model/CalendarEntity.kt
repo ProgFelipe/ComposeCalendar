@@ -7,15 +7,12 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.UUID
-import java.util.concurrent.TimeUnit
-import kotlin.math.absoluteValue
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 
 data class CalendarEntity(
     val days: List<Day?> = listOf()
 ) {
-
 
     companion object {
         private const val NUMBER_OF_ELEMENTS = 2000
@@ -47,7 +44,7 @@ data class CalendarEntity(
 
                 val daysOffset = if (addExtraSpaces) {
                     addExtraSpaces = false
-                    EMPTY_SPACES+1
+                    EMPTY_SPACES + 1
                 } else {
                     1
                 }
@@ -64,9 +61,8 @@ data class CalendarEntity(
                 val availablePositions = getRemainPositions(listOfEventsXDay, positionsPerDay)
 
                 if (listOfEventsXDay.size < MAX_EVENTS_X_DAY) {
-                    for (i in 0..<availablePositions.size) {
-                        val position = availablePositions[i]
-                        listOfEventsXDay.add(generateEvent(position, dateInfo.time))
+                    for (element in availablePositions) {
+                        listOfEventsXDay.add(generateEvent(element, dateInfo.time))
                     }
                 }
 
@@ -129,18 +125,6 @@ data class CalendarEntity(
                 position = position
             )
         }
-
-        private fun addEmptyDays(list: ArrayList<Day?>, extraSpaces: Int, daysInMonth: Int) {
-            var extraSpaces1 = extraSpaces
-            if ((list.size - extraSpaces1) % daysInMonth == 0) {
-                if (list.size > 0) {
-                    (0..35 - daysInMonth).forEach {
-                        list.add(null)
-                        extraSpaces1 += 1
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -175,31 +159,6 @@ data class Event(
             endDate -> BorderOrder.End
             else -> BorderOrder.Center
         }
-    }
-
-    fun getDayOfMonth(date: Date): String {
-        val cal = Calendar.getInstance()
-        cal.time = date
-        return cal.get(Calendar.DAY_OF_MONTH).toString()
-    }
-
-    fun getPositionInRange(date: Date): Int {
-        //TimeUnit.MILLISECONDS.toDays(endDate.day - date.day)
-
-
-        /*val cal = Calendar.getInstance()
-        cal.time = date
-        val day1 = cal.get(Calendar.DAY_OF_MONTH)
-
-        val cal2 = Calendar.getInstance()
-        cal2.time = starDate
-        val day2 = cal2.get(Calendar.DAY_OF_MONTH)*/
-
-        val days = TimeUnit.DAYS.convert(starDate.time - date.time, TimeUnit.MILLISECONDS)
-
-
-        //val daysRounded = (endDate.time - date.time / (1000.0 * 60 * 60 * 24)).roundToInt()
-        return days.toInt().absoluteValue
     }
 }
 
